@@ -1,104 +1,94 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import requests
 import base64
 from PIL import Image
 from io import BytesIO
 import os
 from dotenv import load_dotenv
-import replicate
+import os  
+import base64
+from openai import AzureOpenAI  
 
 # Load API keys from environment variables
 load_dotenv()
-HUGGING_FACE_TOKEN = os.getenv('HUG_KEY')
-REPLICATE_API_KEY = os.getenv('REPLICATE_KEY')
 
 router = APIRouter()
 
 class SketchRequest(BaseModel):
     image_data: str  # Base64-encoded image string from frontend
 
+def generate_prompt(img_url: str):  
+    # Load environment variables from .env file  
+    endpoint = os.getenv("ENDPOINT_URL")  
+    deployment = os.getenv("DEPLOYMENT_NAME")  
+    subscription_key = os.getenv("AZURE_OPENAI_API_KEY")  
+
+    # Initialize Azure OpenAI Service client with key-based authentication    
+    client = AzureOpenAI(  
+        azure_endpoint=endpoint,  
+        api_key=subscription_key,  
+        api_version="2025-01-01-preview",
+    )
+    
+    print(client)
+    #Prepare the chat prompt 
+    chat_prompt = [
+        {
+            "role": "system",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "You are an AI tool that takes image descriptions and writes prompts that would allow AI to generate an image. In the description you should ignore like line colour, also the prompt should be for one cohesive image. The description will list out objects and we want to render that into one image with the prompt\n\npeople also might send images, if they do it is your job to then generate prompt for that image, you can ignore things like colour of the lines or the crummyness of the drawing and instead just focus on the details, their position and the object as a whole. If the image is just a black line drawing, you can assume colour, also if there is colours make sure you specify the colour of those objects\n\nthe prompt must also specify a white background"
+                }
+            ]
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "image": img_url
+                }
+            ]
+        }
+    ]
+    
+# Include speech result if speech is enabled  
+    messages = chat_prompt  
+    
+# Generate the completion  
+    completion = client.chat.completions.create(  
+        model=deployment,
+        messages=messages,
+        max_tokens=800,  
+        temperature=1,  
+        top_p=1,  
+        frequency_penalty=0,  
+        presence_penalty=0,
+        stop=None,  
+        stream=False
+    )
+
+    print(completion.to_json())  
+
 @router.post("/process-sketch")
 async def process_sketch(sketch: SketchRequest):
     """ Process the sketch, refine it with Hugging Face, and generate 3D model using Replicate. """
     try:
-        # Step 1: Decode the sketch image
+        print("Received sketch data")
+
+
         img_data = sketch.image_data
-        img_bytes = base64.b64decode(img_data.split(",")[1])
-        img = Image.open(BytesIO(img_bytes))
+        image_data = img_data.split(',')[1]
+        image_bytes = base64.b64decode(image_data)
 
-        print(img)
-        # Step 2: Refine the image using Hugging Face's ControlNet model
-        #refined_image_url = await refine_image(img)
+        # Now encode it back to base64, ready to send to Azure
+        encoded_image = base64.b64encode(image_bytes).decode('ascii')
 
-        # Step 3: Generate 3D model from refined image using Replicate
-        model_data = await generate_3d_model("dinosaur in the woods")
-        return model_data
+        generate_prompt(encoded_image)
+        return "hi"
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-async def refine_image(image: Image):
-    """ Refine the image using Hugging Face's ControlNet model. """
-    try:
-        headers = {
-            'Authorization': f'Bearer {HUGGING_FACE_TOKEN}',
-            'Content-Type': 'application/json'
-        }
-        data = {
-            'inputs': image_to_base64(image)
-        }
-        print(f"Sending data to Hugging Face: {data}")  # Debug the data
-        response = requests.post('https://api-inference.huggingface.co/models/lllyasviel/ControlNet-scribble', headers=headers, json=data)
-        
-        if response.status_code != 200:
-            raise ValueError(f"Failed request to Hugging Face. Status code: {response.status_code} Response: {response.text}")
-
-        response.raise_for_status()  # Will raise an error if response is not 2xx
-        
-        refined_image_url = response.json().get('url')
-        if not refined_image_url:
-            raise ValueError("Refined image URL not returned from Hugging Face.")
-        
-        return refined_image_url
-    except Exception as e:
-        print(f"Error in refine_image: {e}")
-        raise HTTPException(status_code=500, detail=f"Error refining image: {str(e)}")
-
-async def generate_3d_model(image_url: str):
-    """ Send the refined image to Replicate to generate a 3D model. """
-    try:
-        print(f"Preparing to send request to Replicate with image_url: {image_url}")
-        
-        # Setup Replicate client with your API key
-        client = replicate.Client(api_token=REPLICATE_API_KEY)
-        
-        # Example model: "stability-ai/stable-diffusion-3d" (or any 3D model of your choice)
-        model = client.models.get("stability-ai/stable-diffusion-3d")
-        
-        # Print model details for debugging
-        print(f"Loaded model: {model}")
-        
-        # Generate the 3D model based on the refined image URL
-        print(f"Sending request to Replicate with the following prompt: {image_url}")
-        output = model.predict(prompt=image_url)
-        
-        # Debug the response from Replicate
-        print(f"Received response from Replicate: {output}")
-        
-        if not output:
-            raise ValueError("No output returned from Replicate.")
-        
-        # Assuming 'image' key contains the 3D model URL or data
-        if 'image' not in output:
-            raise ValueError("No 'image' field in Replicate response. Response: {output}")
-
-        # If successful, return the 3D model URL
-        return {"3D_model_url": output['image']}  # Adjust according to the actual response format
-
-    except Exception as e:
-        # Capture detailed error information
-        print(f"Error in generate_3d_model: {e}")
-        raise HTTPException(status_code=500, detail=f"Error generating 3D model: {str(e)}")
 
 def image_to_base64(image: Image) -> str:
     """ Convert image to base64 string for API submission. """

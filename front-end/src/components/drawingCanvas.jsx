@@ -49,7 +49,7 @@ const DrawingCanvas = () => {
   };
 
   const handleExport = async () => {
-
+    
     // Get the image data from the canvas (base64-encoded)
   const uri = stageRef.current.toDataURL();
 
@@ -67,7 +67,7 @@ const DrawingCanvas = () => {
       },
       body: JSON.stringify(payload), // Send the image data as a JSON string
     });
-
+    
     // Handle the response from the backend
     if (response.ok) {
       const result = await response.json();
