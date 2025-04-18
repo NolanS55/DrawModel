@@ -89,7 +89,6 @@ const DrawingCanvas = () => {
     console.error("Failed to send sketch to backend:", error);
   }
   };
-  if (threeJsCode === "") {
   return (
     
     <div className="drawing">
@@ -140,14 +139,10 @@ const DrawingCanvas = () => {
       >
         Export Drawing
       </button>
-      
+      <ModelViewer className="modelViewer" threeJsCode={threeJsCode}/>
 
     </div>
   );
-}
-else {
-return (<ModelViewer className="modelViewer" threeJsCode={threeJsCode}/>)
-}
 };
 
 export default DrawingCanvas;
