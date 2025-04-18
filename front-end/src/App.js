@@ -1,10 +1,10 @@
 import logo from './logo.svg';
 import './App.css';
-import DrawingCanvas from './components/drawingCanvas';
+import Main from './components/main';
 function App() {
   return (
     <div className="App">
-      <DrawingCanvas></DrawingCanvas>
+      <Main></Main>
     </div>
   );
 }

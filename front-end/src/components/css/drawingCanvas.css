@@ -1,0 +1,6 @@
+.drawing-canvas {
+    background-color: white;
+    margin-left: 5rem;
+    width: 750px;
+    cursor: crosshair;
+}

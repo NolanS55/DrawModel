@@ -2,15 +2,17 @@ import React, { useRef, useState } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
 // Import Tailwind CSS for styling
 import Slider from '@mui/material/Slider';
-
-
+import './css/drawingCanvas.css'; // Import your CSS file for custom styles
+import ModelViewer from './modelViewer';
 const DrawingCanvas = () => {
   const [lines, setLines] = useState([]);
   const isDrawing = useRef(false);
   const stageRef = useRef();
   const [colour, setColour] = useState('black');
   const [size, setSize] = useState(5);
-  var colours = ["green", "orange", "blue", "red", "purple", "pink", "yellow"];
+  var colours = ["green", "orange", "blue", "red", "purple", "pink", "yellow", "#654321", "black"];
+
+  const [threeJsCode, setThreeJsCode] = useState("")
 
   const handleMouseDown = () => {
     isDrawing.current = true;
@@ -71,7 +73,12 @@ const DrawingCanvas = () => {
     // Handle the response from the backend
     if (response.ok) {
       const result = await response.json();
-      console.log("3D Model URL:", result["3D_model_url"]);
+      var prompt = result.prompt;
+      
+      prompt = prompt
+       .replace(/^```javascript\s*/, '')   
+        .replace(/```$/, '');
+      setThreeJsCode(prompt);
       
       // Optionally, you can create a download link for the 3D model or show a success message
       alert("Successfully processed sketch and generated 3D model!");
@@ -82,10 +89,12 @@ const DrawingCanvas = () => {
     console.error("Failed to send sketch to backend:", error);
   }
   };
-
+  if (threeJsCode === "") {
   return (
-    <div className="flex flex-col items-center gap-4">
-        {colours.map((colour) => (
+    
+    <div className="drawing">
+      <div className='controls'>
+      {colours.map((colour) => (
           <button
             key={colour}
             className={`bg-${colour}-600 text-white px-4 py-2 rounded hover:bg-${colour}-700`}
@@ -94,13 +103,15 @@ const DrawingCanvas = () => {
             {colour.charAt(0).toUpperCase() + colour.slice(1)}
           </button>
         ))}
-        <button onClick={clearCanvas} className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+        <button onClick={clearCanvas} className="clearCanvas">
           Clear Canvas  </button>
          <Slider sx={{ width: 300 }} defaultValue={2} step={1} min={1} max={10} onChange={sizeUpdate}></Slider> 
+      </div>
+        
       <Stage
-        width={500}
-        height={500}
-        className="border border-gray-400 background-colour-white"
+        width={750}
+        height={750}
+        className="drawing-canvas"
         onMouseDown={handleMouseDown}
         onMousemove={handleMouseMove}
         onMouseup={handleMouseUp}
@@ -129,8 +140,14 @@ const DrawingCanvas = () => {
       >
         Export Drawing
       </button>
+      
+
     </div>
   );
+}
+else {
+return (<ModelViewer className="modelViewer" threeJsCode={threeJsCode}/>)
+}
 };
 
 export default DrawingCanvas;
