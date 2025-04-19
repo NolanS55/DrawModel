@@ -10,7 +10,7 @@ const DrawingCanvas = () => {
   const stageRef = useRef();
   const [colour, setColour] = useState('black');
   const size = 5 // Default siz
-  var colours = ["green", "orange", "blue", "red", "purple", "pink", "yellow", "#654321", "black"];
+  var colours = ["green", "orange", "blue", "red", "purple", "pink", "yellow", "#654321", "black", "white"];
 
   // State to hold the Three.js code
   const [threeJsCode, setThreeJsCode] = useState(` const scene = new THREE.Scene();
@@ -82,6 +82,11 @@ const DrawingCanvas = () => {
 
     animate();`)
 
+    const [d3View, set3dView] = useState(false);
+    const toggle3dView = () => {
+      set3dView(!d3View);
+    };
+
   // State to hold the stage dimensions
   const [stageWidth, setStageWidth] = useState(0);
   const [stageHeight, setStageHeight] = useState(0);
@@ -137,6 +142,49 @@ const DrawingCanvas = () => {
     isDrawing.current = false;
   };
 
+  const handleAddToScene = async () => {
+    const uri = stageRef.current.toDataURL();
+
+    // Get the image data from the canvas
+    const payload = {
+      image_data: uri,
+      threeJsCode : threeJsCode,
+      width : stageWidth * .75,
+      height : stageHeight * .75
+    };
+
+    try {
+      // Send the POST request to the backend API
+      const response = await fetch("http://127.0.0.1:8000/add-to-scene", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      // Handle the response from the backend
+      if (response.ok) {
+        const result = await response.json();
+        var prompt = result.prompt;
+        
+        prompt = prompt
+         .replace(/^```javascript\s*/, '')   
+          .replace(/```$/, '');
+        setThreeJsCode(prompt);
+        
+        // scroll to the model viewer section
+        
+        
+        toggle3dView();
+        
+      } else {
+        console.error("Error processing the sketch:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to send sketch to backend:", error);
+    }
+  };
 
   const handleExport = async () => {
     
@@ -144,7 +192,9 @@ const DrawingCanvas = () => {
   const uri = stageRef.current.toDataURL();
 
   const payload = {
-    image_data: uri
+    image_data: uri,
+    width : stageWidth * .75,
+    height : stageHeight * .75
   };
 
   try {
@@ -168,10 +218,9 @@ const DrawingCanvas = () => {
       setThreeJsCode(prompt);
       
       // scroll to the model viewer section
-      alert("Sketch processed successfully!")
       
-      const modelSection = document.getElementById('model');
-      modelSection.scrollIntoView({ behavior: 'smooth' });
+      
+      toggle3dView();
       
     } else {
       console.error("Error processing the sketch:", response.statusText);
@@ -179,15 +228,18 @@ const DrawingCanvas = () => {
   } catch (error) {
     console.error("Failed to send sketch to backend:", error);
   }
+  
   };
+
   return (
     
     <div className="drawing">
-      <h1 className="drawingTitle">Drawing Canvas</h1>
-      <div className='drawingArea'>
+      <h1 className="drawingTitle" style={{ display: d3View ? 'none' : 'block' }}>Drawing Canvas</h1>
+      <div className='drawingArea' style={{ display: d3View ? 'none' : 'block' }}>
       
       <div className='controls'>
       {colours.map((colour) => (
+          
           <button
             key={colour}
             className={`colorSwatch ${colour}`}
@@ -196,7 +248,7 @@ const DrawingCanvas = () => {
           </button>
         ))}
         <button onClick={clearCanvas} className="clearCanvas">
-          Clear Canvas  </button>
+        🗑️ Clear Canvas  </button>
         
       </div>
         
@@ -231,14 +283,31 @@ const DrawingCanvas = () => {
         className="exportButton"
         onClick={handleExport}
       >
-        Export Drawing
+        🧊 Turn 3D
+      </button>
+      <button
+        className="exportButton"
+        onClick={toggle3dView}
+      >
+           ↔️ Switch Viewing
+      </button>
+      <button
+        className="exportButton"
+        onClick={toggle3dView}
+      >
+           ➕ Add to Scene
       </button>
 
       </div>
-      <section id="model" className="modelViewerSection">
+      <section id="model" className="modelViewerSection" style={{ display: d3View ? 'block' : 'none' }}>
         <h2 className="modelViewerTitle">3D Model Viewer</h2>
-        <p className="modelViewerDescription">Here is the 3D model generated from your sketch:</p>
         <ModelViewer className="modelViewer" threeJsCode={threeJsCode}/>
+        <button
+        className="d3SwapButton"
+        onClick={toggle3dView}
+      >
+        ↔️ Switch Viewing
+      </button>
         </section>
     </div>
   );

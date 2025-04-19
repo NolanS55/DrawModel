@@ -8,7 +8,6 @@ import './css/modelViewer.css'; // Import your CSS file for custom styles
 
 const ModelViewer = ({ threeJsCode }) => {
   const mountRef = useRef();
-  if (threeJsCode) {console.log('ModelViewer component mounted with threeJsCode: ', threeJsCode);}
   useEffect(() => {
     const mount = mountRef.current;
 

@@ -3,5 +3,8 @@
     height: 100%;
     display: flex;
     justify-content: center;
-    margin-bottom: 5rem;
+}
+
+.threeJSRender canvas {
+    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.3);
 }
