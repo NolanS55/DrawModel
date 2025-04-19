@@ -8,8 +8,11 @@ from app.modelGen import generate_model
 
 router = APIRouter()
 
+class SketchRequest(BaseModel):
+    image_data: str  # Base64-encoded image string from frontend
 
 def add_white_background(png_base64):
+    # add white background to the image so image is readable by AI
     image_data = base64.b64decode(png_base64)
     image = Image.open(BytesIO(image_data)).convert("RGBA")
 
@@ -21,11 +24,8 @@ def add_white_background(png_base64):
     background.convert("RGB").save(output, format="PNG")
     return base64.b64encode(output.getvalue()).decode("ascii")
 
-class SketchRequest(BaseModel):
-    image_data: str  # Base64-encoded image string from frontend
 
-
-
+# API endpoint for processing the sketch
 @router.post("/process-sketch")
 async def process_sketch(sketch: SketchRequest):
     """ Process the sketch, refine it with Hugging Face, and generate 3D model using Replicate. """
@@ -36,8 +36,8 @@ async def process_sketch(sketch: SketchRequest):
         img_data = sketch.image_data
         image_data = img_data.split(',')[1]
         white_background_base64 = add_white_background(image_data)
-        with open("sketch_output_with_white.png", "wb") as f:
-            f.write(base64.b64decode(white_background_base64))
+        
+        print("Added white background to the image")
 
 
         jsCode = generate_model(white_background_base64)

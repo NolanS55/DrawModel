@@ -1,9 +1,11 @@
 .main {
     width: 100%;
     height: 100vh;
-    background-color: black;
+    background: linear-gradient(135deg, #000000 0%, #000000 100%);
+    overflow-x: hidden;
 }
 
 .drawing {
-    width: 50%;
+    width: 100%;
 }
+

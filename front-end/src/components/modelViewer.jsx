@@ -1,10 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import './css/modelViewer.css'; // Import your CSS file for custom styles
+
 
 const ModelViewer = ({ threeJsCode }) => {
   const mountRef = useRef();
-  console.log('ModelViewer component mounted with threeJsCode: ', threeJsCode);
+  if (threeJsCode) {console.log('ModelViewer component mounted with threeJsCode: ', threeJsCode);}
   useEffect(() => {
     const mount = mountRef.current;
 
@@ -21,9 +25,9 @@ const ModelViewer = ({ threeJsCode }) => {
         return el;
       };
 
-      // Run the Three.js code
-      const wrappedFn = new Function('THREE', 'OrbitControls', 'window', 'document', 'requestAnimationFrame', threeJsCode);
-      wrappedFn(THREE, OrbitControls, window, document, requestAnimationFrame);
+      // Run the Three.js code and import necessary modules
+      const wrappedFn = new Function('THREE', 'OrbitControls', 'window', 'document', 'requestAnimationFrame', 'FontLoader', 'TextGeometry', threeJsCode);
+      wrappedFn(THREE, OrbitControls, window, document, requestAnimationFrame, FontLoader, TextGeometry);
 
       // Restore document.body.appendChild to avoid side effects
       document.body.appendChild = originalAppendChild;
@@ -39,7 +43,7 @@ const ModelViewer = ({ threeJsCode }) => {
     }
   }, [threeJsCode]);
 
-  return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
+  return <div className='threeJSRender' ref={mountRef}/>;
 };
 
 export default ModelViewer;

@@ -1,6 +1,82 @@
-.drawing-canvas {
+.drawingTitle {
+    color: white;
+    font-size: 3rem;
+    font-family: 'poppins', sans-serif;
+    font-weight: 600;
+    margin: 0;
+    margin-top: 1rem;
+}
+
+.drawingCanvas {
     background-color: white;
-    margin-left: 5rem;
-    width: 750px;
+    width: 100%;
     cursor: crosshair;
 }
+
+.drawingArea {
+    background-color: white;
+    width: 75%;
+    margin: auto;
+    margin-top: .5rem;
+}
+
+.modelViewerTitle {
+    color: white;
+    font-size: 3rem;
+    font-family: 'poppins', sans-serif;
+    font-weight: 600;
+    margin: 0;
+    margin-top: 1rem;
+}
+
+.modelViewer {
+    margin: 5rem;
+}
+
+.controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    justify-content: center;
+  }
+  
+  .colorSwatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.375rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .color-swatch:hover {
+    transform: scale(1.1);
+    border-color: #fff;
+  }
+  
+  /* Example Tailwind-like custom colors */
+  .red    { background-color: #dc2626; } /* red-600 */
+  .orange { background-color: #ea580c; } /* orange-600 */
+  .yellow { background-color: #ca8a04; } /* yellow-600 */
+  .green  { background-color: #16a34a; } /* green-600 */
+  .blue   { background-color: #2563eb; } /* blue-600 */
+  .purple { background-color: #9333ea; } /* purple-600 */
+  .black  { background-color: #000000; }
+  .white  { background-color: #ffffff; border-color: #ccc; }
+  
+  .clearCanvas {
+    padding: 0.5rem 1rem;
+    margin-left: 1rem;
+    background: #444;
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+  }
+  
+  .clearCanvas:hover {
+    background: #666;
+  }
+

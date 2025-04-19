@@ -1,19 +1,110 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
-// Import Tailwind CSS for styling
-import Slider from '@mui/material/Slider';
-import './css/drawingCanvas.css'; // Import your CSS file for custom styles
+import './css/drawingCanvas.css'; // Import your CSS file custom styles
 import ModelViewer from './modelViewer';
 const DrawingCanvas = () => {
+
+  // State to hold lines, and drawing properties
   const [lines, setLines] = useState([]);
   const isDrawing = useRef(false);
   const stageRef = useRef();
   const [colour, setColour] = useState('black');
-  const [size, setSize] = useState(5);
+  const size = 5 // Default siz
   var colours = ["green", "orange", "blue", "red", "purple", "pink", "yellow", "#654321", "black"];
 
-  const [threeJsCode, setThreeJsCode] = useState("")
+  // State to hold the Three.js code
+  const [threeJsCode, setThreeJsCode] = useState(` const scene = new THREE.Scene();
 
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const WIDTH = 1000;
+    const HEIGHT = 700;
+    renderer.setSize(WIDTH, HEIGHT);
+    renderer.setClearColor(0x82C8E5);
+    document.body.appendChild(renderer.domElement);
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(
+      75, WIDTH / HEIGHT, 0.1, 1000
+    );
+    camera.position.set(3, 2, 0);
+
+    // Ground
+    const planeGeometry = new THREE.PlaneGeometry(20, 20);
+    const planeMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = -Math.PI / 2;
+    scene.add(plane);
+
+    // Pine Tree - Trunk
+    const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 1.5, 8);
+    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+    trunk.position.y = 0.75;
+    scene.add(trunk);
+
+    // Pine Tree - Foliage
+    const createCone = (radius, height, yOffset) => {
+      const geometry = new THREE.ConeGeometry(radius, height, 8);
+      const material = new THREE.MeshLambertMaterial({ color: 0x006400 });
+      const cone = new THREE.Mesh(geometry, material);
+      cone.position.y = yOffset;
+      return cone;
+    };
+
+    const foliage1 = createCone(1.2, 1.5, 1.8);
+    const foliage2 = createCone(1.0, 1.2, 2.7);
+    const foliage3 = createCone(0.8, 1.0, 3.4);
+    scene.add(foliage1, foliage2, foliage3);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 7.5);
+    scene.add(directionalLight);
+
+    // Orbit animation
+    let angle = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+
+      angle += 0.01;
+      const radius = 5;
+      camera.position.x = Math.cos(angle) * radius;
+      camera.position.z = Math.sin(angle) * radius;
+      camera.position.y = 2;
+      camera.lookAt(0, 1.5, 0);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();`)
+
+  // State to hold the stage dimensions
+  const [stageWidth, setStageWidth] = useState(0);
+  const [stageHeight, setStageHeight] = useState(0);
+  useEffect(() => {
+    const updateSize = () => {
+      if (stageRef.current) {
+        setStageWidth(window.innerWidth);
+        setStageHeight(window.innerHeight);
+      }
+    };
+
+    // Set initial size
+    updateSize();
+
+    // Add resize event listener
+    window.addEventListener('resize', updateSize);
+
+    return () => {
+      window.removeEventListener('resize', updateSize);
+    };
+  }, []);
+
+//General code for drawing canvas
   const handleMouseDown = () => {
     isDrawing.current = true;
     setLines([...lines, { points: [], colour, size }]);
@@ -25,10 +116,6 @@ const DrawingCanvas = () => {
 
   const clearCanvas = () => {
     setLines([]);
-  }
-
-  const sizeUpdate = (event, newSize) => {
-    setSize(newSize);
   }
 
   const handleMouseMove = (e) => {
@@ -50,12 +137,12 @@ const DrawingCanvas = () => {
     isDrawing.current = false;
   };
 
+
   const handleExport = async () => {
     
-    // Get the image data from the canvas (base64-encoded)
+  // Get the image data from the canvas
   const uri = stageRef.current.toDataURL();
 
-  // Prepare the payload for the API request
   const payload = {
     image_data: uri
   };
@@ -67,7 +154,7 @@ const DrawingCanvas = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload), // Send the image data as a JSON string
+      body: JSON.stringify(payload),
     });
     
     // Handle the response from the backend
@@ -80,8 +167,12 @@ const DrawingCanvas = () => {
         .replace(/```$/, '');
       setThreeJsCode(prompt);
       
-      // Optionally, you can create a download link for the 3D model or show a success message
-      alert("Successfully processed sketch and generated 3D model!");
+      // scroll to the model viewer section
+      alert("Sketch processed successfully!")
+      
+      const modelSection = document.getElementById('model');
+      modelSection.scrollIntoView({ behavior: 'smooth' });
+      
     } else {
       console.error("Error processing the sketch:", response.statusText);
     }
@@ -92,29 +183,32 @@ const DrawingCanvas = () => {
   return (
     
     <div className="drawing">
+      <h1 className="drawingTitle">Drawing Canvas</h1>
+      <div className='drawingArea'>
+      
       <div className='controls'>
       {colours.map((colour) => (
           <button
             key={colour}
-            className={`bg-${colour}-600 text-white px-4 py-2 rounded hover:bg-${colour}-700`}
+            className={`colorSwatch ${colour}`}
             onClick={() => changeColour(colour)}
           >
-            {colour.charAt(0).toUpperCase() + colour.slice(1)}
           </button>
         ))}
         <button onClick={clearCanvas} className="clearCanvas">
           Clear Canvas  </button>
-         <Slider sx={{ width: 300 }} defaultValue={2} step={1} min={1} max={10} onChange={sizeUpdate}></Slider> 
+        
       </div>
         
       <Stage
-        width={750}
-        height={750}
-        className="drawing-canvas"
+        width={stageWidth * .75}
+        height={stageHeight * .75}
+        className="drawingCanvas"
         onMouseDown={handleMouseDown}
         onMousemove={handleMouseMove}
         onMouseup={handleMouseUp}
         ref={stageRef}
+        style={{ width: '100%', height: '100%' }}
       >
         <Layer>
 
@@ -134,13 +228,18 @@ const DrawingCanvas = () => {
         </Layer>
       </Stage>
       <button
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="exportButton"
         onClick={handleExport}
       >
         Export Drawing
       </button>
-      <ModelViewer className="modelViewer" threeJsCode={threeJsCode}/>
 
+      </div>
+      <section id="model" className="modelViewerSection">
+        <h2 className="modelViewerTitle">3D Model Viewer</h2>
+        <p className="modelViewerDescription">Here is the 3D model generated from your sketch:</p>
+        <ModelViewer className="modelViewer" threeJsCode={threeJsCode}/>
+        </section>
     </div>
   );
 };
