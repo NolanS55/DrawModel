@@ -44,7 +44,7 @@
 
 1. User draws a basic sketch on the canvas
 2. Send the image to the back-end to be processed
-3. Run it through to AI's that have been prompt engineered to write refined and detailed ThreeJS code
+3. Run it through two openAI gpt4o instances that have been prompt engineered to write refined and detailed ThreeJS code
 4. The system generates Three.js code based on the structure  
 5. The 3D model is rendered in-browser and ready for interaction
 6. User can swap between sketch and 3d model as well add more sketches to a scene
