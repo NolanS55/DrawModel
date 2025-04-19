@@ -67,7 +67,7 @@ uvicorn app.main:app --reload
 cd front-end
 npm install
 npm run dev
-
+```
 ---
 
 ## 📫 Contact
