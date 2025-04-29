@@ -1,8 +1,8 @@
 import DrawCanvas from '../components/drawingCanvas';
-
+import '../components/css/main.css';
 function CanvasPage() {
   return (
-    <DrawCanvas />
+    <DrawCanvas class="main"></DrawCanvas>
   );
 }
 

@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import '../components/css/loginPage.css';
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-  
+    console.log("Login")
+    setEmail(loginEmail)
+    setPassword(loginPassword)
     const payload = {
-      email,
-      password
+      loginEmail,
+      loginPassword
     };
   
     try {
@@ -65,15 +69,15 @@ function LoginPage() {
   };
 
   return (
-    <div>
+    <div className='main'>
  <form onSubmit={handleLogin}>
       <h1>Login</h1>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-      <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" />
+      <input value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="Email" />
+      <input value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="Password" type="password" />
       <button type="submit">Login</button>
     </form>
     <form onSubmit={handleRegister}>
-    <h1>Login</h1>
+    <h1>Register</h1>
     <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
     <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" />
     <button type="submit">Register</button>
