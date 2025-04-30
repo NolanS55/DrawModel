@@ -1,7 +1,7 @@
-fastapi==0.95.0
+fastapi>=0.109.2
+pydantic>=2.6.4
 uvicorn==0.22.0
 gunicorn
-pydantic==1.10.7
 motor==3.1.1
 pymongo==4.3.3
 bcrypt==4.0.1
