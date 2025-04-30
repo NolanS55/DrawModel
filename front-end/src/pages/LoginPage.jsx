@@ -10,12 +10,9 @@ function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Login")
-    setEmail(loginEmail)
-    setPassword(loginPassword)
     const payload = {
-      loginEmail,
-      loginPassword
+      email : loginEmail,
+      password : loginPassword
     };
   
     try {
